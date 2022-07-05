@@ -1,4 +1,3 @@
-import { useState } from "react"
 import logo from "./logo.svg"
 import { Container, Typography } from "@mui/material"
 import { List } from "./components/List/List"

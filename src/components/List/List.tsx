@@ -1,9 +1,7 @@
-import React, { useEffect, useMemo } from "react"
+import React, { useEffect } from "react"
 import positions from "../../data/positions.json"
 import {
   Container,
-  Box,
-  CircularProgress,
   Card,
   CardActions,
   CardContent,
@@ -20,19 +18,29 @@ import {
   InputAdornment,
   TextField,
   Divider,
+  CardActionArea,
+  Chip,
+  Avatar,
+  Stack,
 } from "@mui/material"
 import FavoriteIcon from "@mui/icons-material/Favorite"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import ShareIcon from "@mui/icons-material/Share"
-import { log } from "console"
-import { filter } from "lodash"
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined"
+import ModalDialog from "../../molecules/ModalDialog/ModalDialog"
+import { Box } from "@mui/system"
 
 const pageSize = 12
 
 export const List = () => {
+  const [items, setItems] = React.useState<Position[]>(positions)
+  const [selectedItem, setSelectedItem] = React.useState<Position>()
+  const [openSelectedModal, setOpenSelectedModal] = React.useState(false)
+
   const [searchTerm, setSearchTerm] = React.useState("")
-  const [items, setItems] = React.useState(positions)
+  const [filtersValues, setFiltersValues] = React.useState<{
+    [key: string]: string
+  }>({})
 
   const [pageNum, setPageNum] = React.useState(0)
   const [itemsPaginated, setItemsPaginated] = React.useState(
@@ -50,10 +58,6 @@ export const List = () => {
       })
     return acc
   }, initial)
-
-  const [filtersValues, setFiltersValues] = React.useState<{
-    [key: string]: string
-  }>({})
 
   const displayItems = () =>
     itemsPaginated.map((item, i) => (
@@ -74,28 +78,30 @@ export const List = () => {
             // subheader={timelapse}
             sx={{ textAlign: "left" }}
           />
-          <CardMedia
-            component="img"
-            image={item ? item.img : ""}
-            alt={item ? item.name : "unkown"}
-          />
-          <CardContent>
-            <Typography
-              sx={{
-                textAlign: "left",
-                mb: 1,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                display: "-webkit-box",
-                WebkitBoxOrient: "vertical",
-                WebkitLineClamp: "3" /* number of lines to show */,
-              }}
-              variant="body2"
-              color="text.secondary"
-            >
-              {item.description}
-            </Typography>
-          </CardContent>
+          <CardActionArea onClick={() => setSelectedItem(item)}>
+            <CardMedia
+              component="img"
+              image={item ? item.img : ""}
+              alt={item ? item.name : "unkown"}
+            />
+            <CardContent>
+              <Typography
+                sx={{
+                  textAlign: "left",
+                  mb: 1,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  WebkitLineClamp: "3" /* number of lines to show */,
+                }}
+                variant="body2"
+                color="text.secondary"
+              >
+                {item.description}
+              </Typography>
+            </CardContent>
+          </CardActionArea>
           <CardActions disableSpacing>
             <IconButton aria-label="add to favorites">
               <FavoriteIcon />
@@ -107,6 +113,10 @@ export const List = () => {
         </Card>
       </Grid>
     ))
+
+  useEffect(() => {
+    setOpenSelectedModal(!!selectedItem)
+  }, [selectedItem])
 
   useEffect(() => {
     setItemsPaginated(items.slice(pageNum * pageSize, (pageNum + 1) * pageSize))
@@ -211,6 +221,77 @@ export const List = () => {
           />
         </Grid>
       </Grid>
+      {selectedItem && (
+        <ModalDialog open={openSelectedModal} setOpen={setOpenSelectedModal}>
+          <Box sx={{ p: 2 }}>
+            <Typography variant="h4" color="text.secondary">
+              {selectedItem.name}
+            </Typography>
+            <img
+              style={{ display: "block", margin: "auto", maxWidth: "90%" }}
+              width="350"
+              src={selectedItem.img}
+              alt={selectedItem.name}
+            />
+            <Typography sx={{ my: 2 }} variant="body2" color="text.secondary">
+              {selectedItem.description}
+            </Typography>
+            {selectedItem.tags.map((tag) => (
+              <Chip
+                key={tag.key}
+                label={`${tag.key}: ${tag.values.join(", ")}`}
+                variant="outlined"
+                size="small"
+                sx={{
+                  mr: 1,
+                  mb: 1,
+                  backgroundColor: "background.paper",
+                  color: "text.primary",
+                }}
+              />
+            ))}
+            <Stack spacing={3} sx={{ my: 1, flexWrap: "wrap" }} direction="row">
+              {selectedItem.similars.map((similar) => (
+                <Stack sx={{ alignItems: "center" }}>
+                  <Avatar
+                    sx={{
+                      width: 70,
+                      height: 70,
+                      border: "2px solid lightgrey",
+                    }}
+                  >
+                    <img
+                      src={positions.find((p) => p.name === similar)?.img}
+                      alt={similar}
+                      style={{ width: "140%" }}
+                    />
+                  </Avatar>
+                  <Typography
+                    component="span"
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    {similar}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+          </Box>
+        </ModalDialog>
+      )}
     </Container>
   )
+}
+
+interface Position {
+  name: string
+  description: string
+  rate: string
+  tags: {
+    key: string
+    values: string[]
+  }[]
+  similars: string[]
+  key: string
+  img: string
 }

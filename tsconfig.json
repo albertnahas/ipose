@@ -14,8 +14,12 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "jest/mocks/cssMocks.js",
+    "node_modules/vite-plugin-pwa/client.d.ts",
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
