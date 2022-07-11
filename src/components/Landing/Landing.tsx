@@ -30,6 +30,13 @@ export var Landing: FC<Props> = function (props) {
       >
         IPose
       </Typography>
+      <img
+        alt="Intro"
+        title="Intro"
+        height="200"
+        src="/assets/imgs/intro.webp"
+        style={{ borderRadius: 8, margin: 10 }}
+      />
       <Typography
         sx={{
           m: 2,

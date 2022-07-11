@@ -25,8 +25,7 @@ export default defineConfig({
       manifest: {
         name: "iPose",
         short_name: "iPose",
-        description:
-          "The ultimate guide for sex positions",
+        description: "The ultimate guide for sex positions",
         icons: [
           {
             src: "/pwa-chrome-192x192.png",
