@@ -22,17 +22,25 @@ import {
   Chip,
   Avatar,
   Stack,
+  useTheme,
 } from "@mui/material"
 import FavoriteIcon from "@mui/icons-material/Favorite"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import ShareIcon from "@mui/icons-material/Share"
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined"
-import ModalDialog from "../../molecules/ModalDialog/ModalDialog"
 import { Box } from "@mui/system"
+import ModalDialog from "../../molecules/ModalDialog/ModalDialog"
+import { Position } from "../../types/position"
+import { useSelector } from "react-redux"
+import { userSelector } from "../../store/userSlice"
+import { useUser } from "../../hooks/useUser"
 
 const pageSize = 12
 
 export const List = () => {
+  const user = useSelector(userSelector)
+  const { updateUser } = useUser()
+
   const [items, setItems] = React.useState<Position[]>(positions)
   const [selectedItem, setSelectedItem] = React.useState<Position>()
   const [openSelectedModal, setOpenSelectedModal] = React.useState(false)
@@ -58,6 +66,19 @@ export const List = () => {
       })
     return acc
   }, initial)
+
+  const onLike = (position: Position) => {
+    if (user?.likes?.includes(position.name)) {
+      updateUser({
+        ...user,
+        likes: user.likes.filter((l) => l !== position.name),
+      })
+    } else {
+      updateUser({ ...user, likes: [...(user?.likes || []), position.name] })
+    }
+  }
+
+  const theme = useTheme()
 
   const displayItems = () =>
     itemsPaginated.map((item, i) => (
@@ -103,8 +124,23 @@ export const List = () => {
             </CardContent>
           </CardActionArea>
           <CardActions disableSpacing>
-            <IconButton aria-label="add to favorites">
-              <FavoriteIcon />
+            <IconButton
+              onClick={() => onLike(item)}
+              aria-label="add to favorites"
+            >
+              {user?.likes?.includes(item.name) ? (
+                <FavoriteIcon
+                  sx={{
+                    color: theme.palette.error.light,
+                  }}
+                />
+              ) : (
+                <FavoriteIcon
+                  sx={{
+                    color: theme.palette.action.active,
+                  }}
+                />
+              )}
             </IconButton>
             <IconButton aria-label="share">
               <ShareIcon />
@@ -252,7 +288,7 @@ export const List = () => {
             ))}
             <Stack spacing={3} sx={{ my: 1, flexWrap: "wrap" }} direction="row">
               {selectedItem.similars.map((similar) => (
-                <Stack sx={{ alignItems: "center" }}>
+                <Stack key={similar} sx={{ alignItems: "center" }}>
                   <Avatar
                     sx={{
                       width: 70,
@@ -281,17 +317,4 @@ export const List = () => {
       )}
     </Container>
   )
-}
-
-interface Position {
-  name: string
-  description: string
-  rate: string
-  tags: {
-    key: string
-    values: string[]
-  }[]
-  similars: string[]
-  key: string
-  img: string
 }
